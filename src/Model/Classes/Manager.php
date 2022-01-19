@@ -11,6 +11,14 @@ class Manager
     private static bool $setupFlag = false;
     private static array $ps4;
 
+    /**
+     * Setup database connection and ps4
+     * @param string $dbname
+     * @param string $user
+     * @param string $password
+     * @param string $psr4Entity
+     * @return void
+     */
     public static function setup(string $dbname, string $user, string $password, string $psr4Entity){
         if(!self::$setupFlag){
             if(!R::testConnection()){
@@ -24,6 +32,7 @@ class Manager
     }
 
     /**
+     * Return all entity matching parameters
      * @throws MethodNotFound
      */
     public static function getAllEntity(string $col, string $sql = "", array $sqlParameter = []): ?array
@@ -46,6 +55,7 @@ class Manager
     }
 
     /**
+     * Return single entity matching parameters
      * @throws MethodNotFound
      */
     public static function getSingleEntity(string $col, int|string $sqlOrId, array $sqlParameter = [])
@@ -64,7 +74,7 @@ class Manager
      * @return mixed
      * @throws MethodNotFound
      */
-    public static function createItem(string $col, ?OODBBean $bean): mixed
+    protected static function createItem(string $col, ?OODBBean $bean): mixed
     {
         $item = new (self::$ps4["entity"] . "\\" . ucfirst($col));
 
@@ -92,4 +102,5 @@ class Manager
         }
         return $item;
     }
+
 }
