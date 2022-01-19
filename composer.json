@@ -1,0 +1,19 @@
+{
+    "name": "yanntyb/manager",
+    "autoload": {
+        "psr-4": {
+            "Yanntyb\\Manager\\": "src/"
+        }
+    },
+    "version": "1.0.1",
+    "authors": [
+        {
+            "name": "yanntyb",
+            "email": "yanntyb.lbc@gmail.com"
+        }
+    ],
+    "require": {
+        "gabordemooij/redbean": "dev-master",
+        "symfony/var-dumper": "^6.0"
+    }
+}
