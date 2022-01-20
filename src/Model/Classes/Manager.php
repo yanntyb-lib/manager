@@ -94,18 +94,21 @@ class Manager
                 $methode = "set" . ucfirst($property);
                 $fk = false;
             }
-            if (method_exists($item, $methode)) {
-                if($fk){
-                    $subItem = self::getSingleEntity(str_replace("_fk","",$property), $value);
-                    $item = $item->$methode($subItem);
+            if($value){
+                if (method_exists($item, $methode)) {
+                    if($fk){
+                        $subItem = self::getSingleEntity(str_replace("_fk","",$property), $value);
+                        $item = $item->$methode($subItem);
+                    }
+                    else{
+                        $item = $item->$methode($value);
+                    }
                 }
                 else{
-                    $item = $item->$methode($value);
+                    throw new MethodNotFound($methode, $item);
                 }
             }
-            else{
-                throw new MethodNotFound($methode, $item);
-            }
+
         }
         return $item;
     }
