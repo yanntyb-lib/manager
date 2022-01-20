@@ -52,7 +52,7 @@ class Manager
             }
             return $items;
         }
-        return null;
+        return [];
 
     }
 
