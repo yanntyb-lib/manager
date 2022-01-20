@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "gabordemooij/redbean": "dev-master",
+        "gabordemooij/redbean": "dev-master as dev-main",
         "symfony/var-dumper": "^6.0"
     }
 }
