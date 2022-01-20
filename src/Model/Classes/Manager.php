@@ -4,12 +4,14 @@ namespace Yanntyb\Manager\Model\CLasses;
 
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
+use ReflectionClass;
+use ReflectionProperty;
 
 class Manager
 {
 
     private static bool $setupFlag = false;
-    private static array $ps4;
+    private static string $ps4;
 
     /**
      * Setup database connection and ps4
@@ -24,9 +26,7 @@ class Manager
             if(!R::testConnection()){
                 R::setup("mysql:host=localhost;dbname=$dbname","$user","$password");
             }
-            static::$ps4 = [
-                "entity" => $psr4Entity,
-            ];
+            static::$ps4 = $psr4Entity;
             self::$setupFlag = true;
         }
     }
@@ -76,7 +76,7 @@ class Manager
      */
     protected static function createItem(string $col, ?OODBBean $bean): mixed
     {
-        $item = new (self::$ps4["entity"] . "\\" . ucfirst($col));
+        $item = new (self::$ps4 . "\\" . ucfirst($col));
 
         foreach ($bean->getProperties() as $property => $value) {
             if(str_contains($property,"_fk")){
@@ -102,5 +102,39 @@ class Manager
         }
         return $item;
     }
+
+    /**
+     * Dispense a single Object into Database
+     * @param object $object
+     * @return void
+     * @throws \RedBeanPHP\RedException\SQL
+     * @throws \ReflectionException
+     */
+    public static function dispense(object $object){
+        $classNameWithNamespace = explode("\\",get_class($object));
+        $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
+
+        $bean = R::dispense($className);
+        $reflect = new ReflectionClass($object);
+        $props = $reflect->getProperties();
+        foreach($props as $prop){
+            $propName = $prop->name;
+            if($propName !== "id"){
+                $propType = (new ReflectionProperty($prop->class, $propName))->getType()->getName();
+                $getter = "get" . ucfirst($propName);
+                if(!str_contains($propType,"\\")){
+                    $bean->$propName = $object->$getter();
+                }
+                else{
+                    $propName = $propName . "_fk";
+                    $bean->$propName = $object->$getter()->getId();
+                }
+            }
+        }
+        dump($bean);
+        $id = R::store($bean);
+        echo $id;
+    }
+
 
 }
