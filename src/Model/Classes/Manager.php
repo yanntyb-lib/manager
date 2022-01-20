@@ -4,7 +4,9 @@ namespace Yanntyb\Manager\Model\CLasses;
 
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
+use RedBeanPHP\RedException\SQL;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionProperty;
 
 class Manager
@@ -107,8 +109,8 @@ class Manager
      * Dispense a single Object into Database
      * @param object $object
      * @return void
-     * @throws \RedBeanPHP\RedException\SQL
-     * @throws \ReflectionException
+     * @throws SQL
+     * @throws ReflectionException
      */
     public static function dispense(object $object){
         $classNameWithNamespace = explode("\\",get_class($object));
@@ -120,15 +122,7 @@ class Manager
         foreach($props as $prop){
             $propName = $prop->name;
             if($propName !== "id"){
-                $propType = (new ReflectionProperty($prop->class, $propName))->getType()->getName();
-                $getter = "get" . ucfirst($propName);
-                if(!str_contains($propType,"\\")){
-                    $bean->$propName = $object->$getter();
-                }
-                else{
-                    $propName = $propName . "_fk";
-                    $bean->$propName = $object->$getter()->getId();
-                }
+                $bean = self::setProperty($prop, $propName, $object, $bean);
             }
         }
         dump($bean);
@@ -136,5 +130,45 @@ class Manager
         echo $id;
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws MethodNotFound
+     */
+    public static function update(object $object){
+        $classNameWithNamespace = explode("\\",get_class($object));
+        $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
+        $item = Manager::createItem($className, R::load($className, $object->getId()));
+        dump($item);
+        $props  = (new ReflectionClass(get_class($object)))->getProperties();
+        dump($props);
+        $bean = R::load($className,$object->getId());
+        foreach($props as $prop){
+            $propName = $prop->name;
+            $bean = self::setProperty($prop, $propName, $object, $bean);
+        }
+        dump($bean);
+        R::store($bean);
+    }
+
+    /**
+     * @param ReflectionProperty $prop
+     * @param string $propName
+     * @param object $object
+     * @param OODBBean $bean
+     * @return OODBBean
+     * @throws ReflectionException
+     */
+    public static function setProperty(ReflectionProperty $prop, string $propName, object $object, OODBBean $bean): OODBBean
+    {
+        $propType = (new ReflectionProperty($prop->class, $propName))->getType()->getName();
+        $getter = "get" . ucfirst($propName);
+        if (!str_contains($propType, "\\")) {
+            $bean->$propName = $object->$getter();
+        } else {
+            $propName = $propName . "_fk";
+            $bean->$propName = $object->$getter()->getId();
+        }
+        return $bean;
+    }
 
 }
