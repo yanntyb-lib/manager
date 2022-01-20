@@ -111,7 +111,7 @@ class Manager
     }
 
     /**
-     * Dispense a single Object into Database
+     * Dispense a Object(s) into Database
      * @param object|array $object $object
      * @return int|array
      * @throws ReflectionException
@@ -142,7 +142,6 @@ class Manager
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
         $props  = (new ReflectionClass(get_class($object)))->getProperties();
-        dump($props);
         $bean = R::load($className,$object->getId());
         foreach($props as $prop){
             $propName = $prop->name;
@@ -176,10 +175,22 @@ class Manager
         return $bean;
     }
 
-    public static function deleteFromObject(object $object){
-        if(Manager::getBeanFromObject($object)){
-            R::trash();
+    public static function deleteFromObject(object|array|null $object){
+        if($object){
+            if(is_array($object)){
+                $objects = $object;
+                foreach($objects as $object){
+                    Manager::trashSingleObject($object);
+                }
+            }
+            else{
+                Manager::trashSingleObject($object);
+            }
         }
+    }
+
+    protected static function trashSingleObject(object $object){
+        R::trash(Manager::getBeanFromObject($object));
     }
 
     /**
