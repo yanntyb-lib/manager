@@ -23,7 +23,7 @@ class Manager
      * @param string $psr4Entity
      * @return void
      */
-    public static function setup(string $dbname, string $user, string $password, string $psr4Entity){
+    public static function setup(string $psr4Entity, string $dbname, string $user = "root", string $password = ""){
         if(!self::$setupFlag){
             if(!R::testConnection()){
                 R::setup("mysql:host=localhost;dbname=$dbname","$user","$password");
@@ -62,7 +62,12 @@ class Manager
      */
     public static function getSingleEntity(string $col, int|string $sqlOrId, array $sqlParameter = [])
     {
-        $bean = R::findOne($col," " . $sqlOrId,$sqlParameter);
+        if(is_int($sqlOrId)){
+            $bean = R::findOne($col, " id = :id", [":id" => $sqlOrId ] );
+        }
+        else{
+            $bean = R::findOne($col," " . $sqlOrId,$sqlParameter);
+        }
         if($bean){
             return self::createItem($col, $bean);
         }
@@ -112,7 +117,7 @@ class Manager
      * @throws SQL
      * @throws ReflectionException
      */
-    public static function dispense(object $object){
+    public static function store(object $object){
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
 
@@ -125,20 +130,17 @@ class Manager
                 $bean = self::setProperty($prop, $propName, $object, $bean);
             }
         }
-        dump($bean);
-        $id = R::store($bean);
-        echo $id;
+        return R::store($bean);
     }
 
     /**
+     * Update an item in database based on $object property
      * @throws ReflectionException
      * @throws MethodNotFound
      */
     public static function update(object $object){
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
-        $item = Manager::createItem($className, R::load($className, $object->getId()));
-        dump($item);
         $props  = (new ReflectionClass(get_class($object)))->getProperties();
         dump($props);
         $bean = R::load($className,$object->getId());
@@ -146,8 +148,7 @@ class Manager
             $propName = $prop->name;
             $bean = self::setProperty($prop, $propName, $object, $bean);
         }
-        dump($bean);
-        R::store($bean);
+        return R::store($bean);
     }
 
     /**
@@ -157,16 +158,45 @@ class Manager
      * @param OODBBean $bean
      * @return OODBBean
      * @throws ReflectionException
+     * @throws MethodNotFound
      */
     public static function setProperty(ReflectionProperty $prop, string $propName, object $object, OODBBean $bean): OODBBean
     {
         $propType = (new ReflectionProperty($prop->class, $propName))->getType()->getName();
         $getter = "get" . ucfirst($propName);
+        if(!method_exists($object, $getter)){
+            throw new MethodNotFound($getter, $object);
+        }
         if (!str_contains($propType, "\\")) {
             $bean->$propName = $object->$getter();
         } else {
             $propName = $propName . "_fk";
             $bean->$propName = $object->$getter()->getId();
+        }
+        return $bean;
+    }
+
+    public static function deleteFromObject(object $object){
+        if(Manager::getBeanFromObject($object)){
+            R::trash();
+        }
+    }
+
+    /**
+     * Get bean from object
+     * @param object $object
+     * @return OODBBean
+     * @throws ReflectionException
+     */
+    protected static function getBeanFromObject(object $object): OODBBean
+    {
+        $classNameWithNamespace = explode("\\",get_class($object));
+        $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
+        $props  = (new ReflectionClass(get_class($object)))->getProperties();
+        $bean = R::load($className,$object->getId());
+        foreach($props as $prop){
+            $propName = $prop->name;
+            $bean = self::setProperty($prop, $propName, $object, $bean);
         }
         return $bean;
     }
