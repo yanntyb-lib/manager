@@ -5,7 +5,7 @@
             "Yanntyb\\Manager\\": "src/"
         }
     },
-    "version": "1.0.8",
+    "version": "1.0.9",
     "authors": [
         {
             "name": "yanntyb",
@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "gabordemooij/redbean": "dev-master as 1.0.7",
+        "gabordemooij/redbean": "dev-master",
         "symfony/var-dumper": "^6.0"
     }
 }
