@@ -104,7 +104,7 @@ class Manager
                 }
             }
             else{
-                throw new MethodNotFound($methode, get_class($item));
+                throw new MethodNotFound($methode, $item);
             }
         }
         return $item;

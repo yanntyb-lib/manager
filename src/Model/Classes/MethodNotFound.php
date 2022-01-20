@@ -6,7 +6,7 @@ use Exception;
 
 class MethodNotFound extends Exception
 {
-    public function __construct($methode , $class) {
-        parent::__construct($methode . " Not found in " . $class);
+    public function __construct(string $methode , object $class) {
+        parent::__construct($methode . " Not found in " . get_class($class));
     }
 }
