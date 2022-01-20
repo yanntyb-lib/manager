@@ -47,7 +47,7 @@ class Manager
              */
             foreach($beans as $bean){
                 $item = self::createItem($col, $bean);
-                $items[] = $item;
+                $items[$bean->id] = $item;
 
             }
             return $items;
@@ -112,25 +112,25 @@ class Manager
 
     /**
      * Dispense a single Object into Database
-     * @param object $object
-     * @return void
-     * @throws SQL
+     * @param object|array $object $object
+     * @return int|array
      * @throws ReflectionException
+     * @throws SQL
      */
-    public static function store(object $object){
-        $classNameWithNamespace = explode("\\",get_class($object));
-        $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
-
-        $bean = R::dispense($className);
-        $reflect = new ReflectionClass($object);
-        $props = $reflect->getProperties();
-        foreach($props as $prop){
-            $propName = $prop->name;
-            if($propName !== "id"){
-                $bean = self::setProperty($prop, $propName, $object, $bean);
+    public static function store(object|array $object): int|array
+    {
+        if(is_array($object)){
+            $objects = $object;
+            $id = [];
+            foreach($objects as $object){
+                $id[] = R::store(Manager::getBeanFromObject($object));
             }
+            return $id;
         }
-        return R::store($bean);
+        else{
+            return R::store(Manager::getBeanFromObject($object));
+        }
+
     }
 
     /**
@@ -188,7 +188,7 @@ class Manager
      * @return OODBBean
      * @throws ReflectionException
      */
-    protected static function getBeanFromObject(object $object): OODBBean
+    protected static function getBeanFromObject(object $object,bool $withId = false): OODBBean
     {
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
@@ -196,7 +196,15 @@ class Manager
         $bean = R::load($className,$object->getId());
         foreach($props as $prop){
             $propName = $prop->name;
-            $bean = self::setProperty($prop, $propName, $object, $bean);
+            if(!$withId){
+                $bean = self::setProperty($prop, $propName, $object, $bean);
+            }
+            else{
+                if($propName !== "id"){
+                    $bean = self::setProperty($prop, $propName, $object, $bean);
+                }
+            }
+
         }
         return $bean;
     }
