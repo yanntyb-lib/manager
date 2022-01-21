@@ -94,7 +94,7 @@ class Manager
                 $methode = "set" . ucfirst($property);
                 $fk = false;
             }
-            if($value){
+            if($value || $value === 0 || $value === "0"){
                 if (method_exists($item, $methode)) {
                     if($fk){
                         $subItem = self::getSingleEntity(str_replace("_fk","",$property), $value);
