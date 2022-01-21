@@ -62,7 +62,7 @@ class Manager
      */
     public static function getSingleEntity(string $col, int|string $sqlOrId, array $sqlParameter = [])
     {
-        if(is_int($sqlOrId)){
+        if(is_numeric($sqlOrId)){
             $bean = R::findOne($col, " id = :id", [":id" => $sqlOrId ] );
         }
         else{
@@ -207,7 +207,14 @@ class Manager
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
         $props  = (new ReflectionClass(get_class($object)))->getProperties();
-        $bean = R::load($className,$object->getId());
+
+        if($withId){
+            $bean = R::load($className,$object->getId());
+        }
+        else{
+            $bean = R::load($className,0);
+        }
+
         foreach($props as $prop){
             $propName = $prop->name;
             if(!$withId){
