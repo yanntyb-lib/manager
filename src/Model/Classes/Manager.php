@@ -141,14 +141,14 @@ class Manager
      * @throws ReflectionException
      * @throws MethodNotFound
      */
-    public static function update(object $object){
+    public static function update(object $object, array $ignore = []){
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
         $props  = (new ReflectionClass(get_class($object)))->getProperties();
         $bean = R::load($className,$object->getId());
         foreach($props as $prop){
             $propName = $prop->name;
-            $bean = self::setProperty($prop, $propName, $object, $bean);
+            $bean = self::setProperty($prop, $propName, $object, $bean, $ignore);
         }
         return R::store($bean);
     }
@@ -162,7 +162,7 @@ class Manager
      * @throws ReflectionException
      * @throws MethodNotFound
      */
-    public static function setProperty(ReflectionProperty $prop, string $propName, object $object, OODBBean $bean): OODBBean
+    public static function setProperty(ReflectionProperty $prop, string $propName, object $object, OODBBean $bean, $ignores = []): OODBBean
     {
         $propType = (new ReflectionProperty($prop->class, $propName))->getType()->getName();
         $getter = "get" . ucfirst($propName);
@@ -170,9 +170,12 @@ class Manager
             throw new MethodNotFound($getter, $object);
         }
         if (!str_contains($propType, "\\")) {
-            if($object->$getter() !== []){
-                $bean->$propName = $object->$getter();
+            foreach($ignores as $ignore){
+                if(in_array($propName, $ignore)){
+                    return $bean;
+                }
             }
+            $bean->$propName = $object->$getter();
         } else {
             $propName = $propName . "_fk";
             $bean->$propName = $object->$getter()->getId();
