@@ -171,7 +171,7 @@ class Manager
         }
         if (!str_contains($propType, "\\")) {
             foreach($ignores as $ignore){
-                if(in_array($propName, $ignore)){
+                if($propName === $ignore){
                     return $bean;
                 }
             }
