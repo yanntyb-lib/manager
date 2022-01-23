@@ -170,7 +170,9 @@ class Manager
             throw new MethodNotFound($getter, $object);
         }
         if (!str_contains($propType, "\\")) {
-            $bean->$propName = $object->$getter();
+            if($object->$getter){
+                $bean->$propName = $object->$getter();
+            }
         } else {
             $propName = $propName . "_fk";
             $bean->$propName = $object->$getter()->getId();
