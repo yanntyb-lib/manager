@@ -131,7 +131,7 @@ class Manager
             return $id;
         }
         else{
-            return R::store(Manager::getBeanFromObject($object));
+            return R::store(Manager::getBeanFromObject($object, false, $ignore));
         }
 
     }
