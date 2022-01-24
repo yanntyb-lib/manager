@@ -120,7 +120,7 @@ class Manager
      * @throws ReflectionException
      * @throws SQL
      */
-    public static function store(object|array $object): int|array
+    public static function store(object|array $object, array $ignore = []): int|array
     {
         if(is_array($object)){
             $objects = $object;
@@ -207,7 +207,7 @@ class Manager
      * @return OODBBean
      * @throws ReflectionException
      */
-    protected static function getBeanFromObject(object $object,bool $withId = false): OODBBean
+    protected static function getBeanFromObject(object $object,bool $withId = false, array $ignore = []): OODBBean
     {
         $classNameWithNamespace = explode("\\",get_class($object));
         $className = strtolower($classNameWithNamespace[count($classNameWithNamespace) - 1]);
@@ -223,11 +223,11 @@ class Manager
         foreach($props as $prop){
             $propName = $prop->name;
             if(!$withId){
-                $bean = self::setProperty($prop, $propName, $object, $bean);
+                $bean = self::setProperty($prop, $propName, $object, $bean, $ignore);
             }
             else{
                 if($propName !== "id"){
-                    $bean = self::setProperty($prop, $propName, $object, $bean);
+                    $bean = self::setProperty($prop, $propName, $object, $bean, $ignore);
                 }
             }
 
