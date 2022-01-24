@@ -126,7 +126,7 @@ class Manager
             $objects = $object;
             $id = [];
             foreach($objects as $object){
-                $id[] = R::store(Manager::getBeanFromObject($object));
+                $id[] = R::store(Manager::getBeanFromObject($object, false, $ignore));
             }
             return $id;
         }
