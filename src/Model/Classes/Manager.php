@@ -39,7 +39,7 @@ class Manager
      */
     public static function getAllEntity(string $col, string $sql = "", array $sqlParameter = []): ?array
     {
-        $beans = R::findAll($col, $sql, $sqlParameter);
+        $beans = R::findAll($col, Manager::sanitize($sql), $sqlParameter);
         if($beans){
             $items = [];
             /**
@@ -63,10 +63,10 @@ class Manager
     public static function getSingleEntity(string $col, int|string $sqlOrId, array $sqlParameter = [])
     {
         if(is_numeric($sqlOrId)){
-            $bean = R::findOne($col, " id = :id", [":id" => $sqlOrId ] );
+            $bean = R::findOne($col, " id = :id", [":id" => Manager::sanitize($sqlOrId) ] );
         }
         else{
-            $bean = R::findOne($col," " . $sqlOrId,$sqlParameter);
+            $bean = R::findOne($col," " . Manager::sanitize($sqlOrId),$sqlParameter);
         }
         if($bean){
             return self::createItem($col, $bean);
@@ -175,7 +175,7 @@ class Manager
                     return $bean;
                 }
             }
-            $bean->$propName = $object->$getter();
+            $bean->$propName = Manager::sanitize($object->$getter());
         } else {
             $propName = $propName . "_fk";
             $bean->$propName = $object->$getter()->getId();
@@ -233,6 +233,11 @@ class Manager
 
         }
         return $bean;
+    }
+
+    private static function sanitize(string $data): string
+    {
+        return trim(stripslashes(htmlspecialchars(addslashes($data))));
     }
 
 }
