@@ -183,22 +183,22 @@ class Manager
         return $bean;
     }
 
-    public static function deleteFromObject(object|array|null $object){
+    public static function deleteFromObject(object|array|null $object, array $ignore = []){
         if($object){
             if(is_array($object)){
                 $objects = $object;
                 foreach($objects as $object){
-                    Manager::trashSingleObject($object);
+                    Manager::trashSingleObject($object,$ignore);
                 }
             }
             else{
-                Manager::trashSingleObject($object);
+                Manager::trashSingleObject($object,$ignore);
             }
         }
     }
 
-    protected static function trashSingleObject(object $object){
-        R::trash(Manager::getBeanFromObject($object));
+    protected static function trashSingleObject(object $object, array $ignore = []){
+        R::trash(Manager::getBeanFromObject($object,$ignore));
     }
 
     /**
