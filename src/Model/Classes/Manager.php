@@ -198,7 +198,7 @@ class Manager
     }
 
     protected static function trashSingleObject(object $object, array $ignore = []){
-        R::trash(Manager::getBeanFromObject($object,$ignore));
+        R::trash(Manager::getBeanFromObject($object,false,$ignore));
     }
 
     /**
