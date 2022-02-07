@@ -1,6 +1,6 @@
 <?php
 
-namespace Yanntyb\Manager\Model\CLasses;
+namespace Yanntyb\Manager\Model\Classes;
 
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
